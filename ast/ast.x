@@ -84,7 +84,7 @@ case TYPE_OPAQUE:         void;
 case TYPE_ENUM:           enum_spec enum_spec;
 case TYPE_STRUCT:         struct_spec struct_spec;
 case TYPE_UNION:          union_spec union_spec;
-case TYPE_REF:            string ref<>;
+case TYPE_REF:            unsigned int ref;
 case TYPE_TYPEDEF:        declaration type_def;
 };
 

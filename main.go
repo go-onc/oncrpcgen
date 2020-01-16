@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.e43.eu/go-onc/oncrpcgen/ast"
 	"github.com/spf13/pflag"
 	xdr3 "github.com/stellar/go-xdr/xdr3"
+	"go.e43.eu/go-onc/oncrpcgen/ast"
 )
 
 type Generator func(baseName string, spec *ast.Specification) error
@@ -59,7 +59,7 @@ func goGenerator(baseName string, spec *ast.Specification) error {
 		return fmt.Errorf("Error opening %s: %v", fileName, err)
 	}
 
-	_, err 	= file.Write(buf)
+	_, err = file.Write(buf)
 	return err
 }
 

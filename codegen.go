@@ -42,16 +42,16 @@ func GoTypeName(s *ast.Specification, t *ast.Type) (string, string, error) {
 	case ast.TYPE_STRING:
 		return "", "string", nil
 	case ast.TYPE_REF:
-		resolved, err := t.Resolve(s)
+		defn, resolved, err := t.FollowRef(s)
 		if err != nil {
-			return "", t.Ref, err
+			return "", "", err
 		}
 		pfx := ""
 		switch resolved.Kind {
 		case ast.TYPE_STRUCT, ast.TYPE_UNION:
 			pfx = "*"
 		}
-		return pfx, CamelCase(t.Ref), nil
+		return pfx, CamelCase(defn.Name), nil
 	default:
 		return "", "", fmt.Errorf("Don't know how to name a %s", t.Kind)
 	}
@@ -414,14 +414,15 @@ func NameIfAnonymous(w io.Writer, s *ast.Specification, parentName string, d *as
 
 	name := fmt.Sprintf("%s.%s", parentName, d.Name)
 	nType := *d.Type
-	if err := s.PutDefinition(&ast.Definition{
+	dIdx, err := s.PutDefinition(&ast.Definition{
 		Name: name,
 		Body: &ast.Definition_Body{
 			Kind: ast.DEFINITION_KIND_TYPE,
 			Type: &nType,
 		},
 		Attributes: d.Attributes,
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
 
@@ -431,7 +432,7 @@ func NameIfAnonymous(w io.Writer, s *ast.Specification, parentName string, d *as
 
 	*d.Type = ast.Type{
 		Kind: ast.TYPE_REF,
-		Ref:  name,
+		Ref:  dIdx,
 	}
 	return nil
 }
@@ -543,13 +544,9 @@ func GenUnionDefinition(w io.Writer, s *ast.Specification, name string, us *ast.
 		}
 	}
 
-	discrimType := us.Discriminant.Type
-	if discrimType.Kind == ast.TYPE_REF {
-		var err error
-		discrimType, err = s.GetType(discrimType.Ref)
-		if err != nil {
-			return err
-		}
+	discrimType, err := us.Discriminant.Type.Resolve(s)
+	if err != nil {
+		return err
 	}
 
 	var discrimEnum *ast.EnumSpec

@@ -1,10 +1,21 @@
 package ast
 
 import (
+	"errors"
 	"fmt"
 )
 
 //go:generate go run ../. -Gxb,go ast.x
+
+var (
+	ErrDefinitionNotFound      = errors.New("Definition not found")
+	ErrDefinitionNotType       = errors.New("Definition not a type")
+	ErrDefinitionNotConstant   = errors.New("Definition not a constant")
+	ErrDefinitionNotConsistent = errors.New("Definition not consistent with preceding definition")
+	ErrRedefinitionOfType      = errors.New("Attempt to redefine type")
+	ErrRedefinitionOfConstant  = errors.New("Attempt to redefine constant")
+	ErrTypeNotRef              = errors.New("Type is not of TYPE_REF")
+)
 
 // Void returns a type of TYPE_VOID
 func Void() *Type { return &Type{Kind: TYPE_VOID} }
@@ -37,10 +48,10 @@ func String() *Type { return &Type{Kind: TYPE_STRING} }
 func Opaque() *Type { return &Type{Kind: TYPE_OPAQUE} }
 
 // Ref returns a type which is a reference to the specified name
-func Ref(name string) *Type {
+func Ref(id uint32) *Type {
 	return &Type{
 		Kind: TYPE_REF,
-		Ref:  name,
+		Ref:  id,
 	}
 }
 
@@ -56,26 +67,66 @@ func (s *Specification) NamedDefinition(n string) *Definition {
 
 // PutDefinition appends a definition with the speicifed name, if it
 // would not conflict with one which already exists
-func (s *Specification) PutDefinition(d *Definition) error {
-	for _, xd := range s.Definitions {
+func (s *Specification) PutDefinition(d *Definition) (uint32, error) {
+	var (
+		xdIdx uint32
+		xd    *Definition
+	)
+	for i, x := range s.Definitions {
 		if xd.Name == d.Name {
-			return fmt.Errorf("Attempt to redefine %s", d.Name)
+			xdIdx = uint32(i)
+			xd = x
+			break
 		}
 	}
 
+	if xd != nil {
+		if xd.Body.Kind != d.Body.Kind {
+			return 0, ErrDefinitionNotConsistent
+		} else if xd.Body.Kind == DEFINITION_KIND_TYPE && xd.Body.Type != nil {
+			return 0, ErrRedefinitionOfType
+		} else if xd.Body.Kind == DEFINITION_KIND_CONSTANT && xd.Body.Constant != nil {
+			return 0, ErrRedefinitionOfConstant
+		}
+		s.Definitions[xdIdx] = d
+		return xdIdx, nil
+	}
+
 	s.Definitions = append(s.Definitions, d)
-	return nil
+	return uint32(len(s.Definitions) - 1), nil
+}
+
+// TypeRef ensures a (potentially empty) type definition exists with the specified
+// name
+func (s *Specification) TypeRef(name string) (*Type, error) {
+	for i, xd := range s.Definitions {
+		if xd.Name == name {
+			if xd.Body.Kind != DEFINITION_KIND_TYPE {
+				return nil, ErrDefinitionNotType
+			}
+			return Ref(uint32(i)), nil
+		}
+	}
+
+	d := &Definition{
+		Name: name,
+		Body: &Definition_Body{
+			Kind: DEFINITION_KIND_TYPE,
+		},
+	}
+	s.Definitions = append(s.Definitions, d)
+	return Ref(uint32(len(s.Definitions) - 1)), nil
 }
 
 // GetType looks up the named type, returning an error if it is not found
 func (s *Specification) GetType(n string) (*Type, error) {
 	d := s.NamedDefinition(n)
 	if d == nil {
-		return nil, fmt.Errorf("Type %s undefined", n)
+		return nil, ErrDefinitionNotFound
 	}
 
 	if d.Body.Kind != DEFINITION_KIND_TYPE {
-		return nil, fmt.Errorf("%s is not a type", n)
+		return nil, ErrDefinitionNotType
 	}
 
 	return d.Body.Type, nil
@@ -85,11 +136,11 @@ func (s *Specification) GetType(n string) (*Type, error) {
 func (s *Specification) GetConstant(n string) (*Constant, error) {
 	d := s.NamedDefinition(n)
 	if d == nil {
-		return nil, fmt.Errorf("Constant %s undefined", n)
+		return nil, ErrDefinitionNotFound
 	}
 
 	if d.Body.Kind != DEFINITION_KIND_CONSTANT {
-		return nil, fmt.Errorf("%s is not a constant", n)
+		return nil, ErrDefinitionNotConstant
 	}
 
 	return d.Body.Constant, nil
@@ -174,6 +225,25 @@ func (l *Declaration) Equal(r *Declaration) bool {
 	return *l.Type == *r.Type && *l.Modifier == *r.Modifier && l.Name == r.Name
 }
 
+// FollowRef follows a single level of TYPE_REF, returning the
+// underlying type
+func (t *Type) FollowRef(s *Specification) (*Definition, *Type, error) {
+	if t.Kind != TYPE_REF {
+		return nil, nil, ErrTypeNotRef
+	}
+
+	if uint(t.Ref) >= uint(len(s.Definitions)) {
+		return nil, nil, ErrDefinitionNotFound
+	}
+
+	d := s.Definitions[t.Ref]
+	if d.Body.Kind != DEFINITION_KIND_TYPE {
+		return nil, nil, ErrDefinitionNotType
+	}
+
+	return d, d.Body.Type, nil
+}
+
 // Resolve attempts to resolve a TYPE_REF into the underlying type, by looking at
 // the passed specification
 func (t *Type) Resolve(s *Specification) (*Type, error) {
@@ -181,11 +251,11 @@ func (t *Type) Resolve(s *Specification) (*Type, error) {
 	for {
 		if t.Kind != TYPE_REF {
 			return t, nil
-		} else {
-			t, err = s.GetType(t.Ref)
-			if err != nil {
-				return nil, err
-			}
+		}
+
+		_, t, err = t.FollowRef(s)
+		if err != nil {
+			return nil, err
 		}
 	}
 }

@@ -25,7 +25,7 @@ func ParseSpecification(l *Lexer) (*ast.Specification, error) {
 			return nil, err
 		}
 
-		if err := s.PutDefinition(d); err != nil {
+		if _, err := s.PutDefinition(d); err != nil {
 			return nil, err
 		}
 	}
@@ -291,7 +291,10 @@ func ParseDeclaration(s *ast.Specification, l *Lexer) (*ast.Declaration, error) 
 			return nil, err
 		}
 	case TokIdent:
-		d.Type = ast.Ref(t.Value)
+		d.Type, err = s.TypeRef(t.Value)
+		if err != nil {
+			return nil, err
+		}
 	case TokVoid:
 		d.Type = ast.Void()
 		return d, nil

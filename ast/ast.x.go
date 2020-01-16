@@ -224,7 +224,7 @@ type Type struct {
 	EnumSpec   *EnumSpec    `json:"enum_spec,omitempty"`
 	StructSpec *StructSpec  `json:"struct_spec,omitempty"`
 	UnionSpec  *UnionSpec   `json:"union_spec,omitempty"`
-	Ref        string       `json:"ref,omitempty"`
+	Ref        uint32       `json:"ref,omitempty"`
 	TypeDef    *Declaration `json:"type_def,omitempty"`
 }
 
