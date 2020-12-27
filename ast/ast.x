@@ -88,16 +88,12 @@ case TYPE_REF:            unsigned int ref;
 case TYPE_TYPEDEF:        declaration type_def;
 };
 
-[doc("Definition of an enum")]
+[doc("Definition of an enum. Represented by referencing the assoicaed global constants")]
 struct enum_spec {
-	// We don't use a Map here to preserve ordering
-	[doc("Set of all options")]
-	struct {
-		[doc("Name of the enumerant")]
-		string   name<>;
-		[doc("Value of the enumerant")]
-		unsigned int value;
-	} options<>;
+	[doc("First constant that is a part of this enumeration")]
+	unsigned int base;
+	[doc("Number of constants (which must consecutively follow base) that define components of this enumeration")]
+	unsigned int count;
 };
 
 [doc("How a declaration modifies its type")]
@@ -150,25 +146,28 @@ struct union_spec {
 
 [doc("Type of a constant. These are a subset of XDR types")]
 enum constant_kind {
-	// [doc("Boolean")]
+	[doc("Void (empty)")]
+	CONST_VOID    = 6,
+	[doc("Boolean")]
 	CONST_BOOL    = 0,
-	// [doc("Positive integer (unsigned hyper)")]
+	[doc("Positive integer (unsigned hyper)")]
 	CONST_POS_INT = 1,
-	// [doc("Negative integer (negate as a signed hyper)")]
+	[doc("Negative integer (negate as a signed hyper)")]
 	CONST_NEG_INT = 2,
-	// [doc("Double precision floating point value")]
+	[doc("Double precision floating point value")]
 	CONST_FLOAT   = 3,
-	// [doc("String constant")]
+	[doc("String constant")]
 	CONST_STRING  = 4,
-	// [doc("Enumeration value")]
+	[doc("Enumeration value")]
 	CONST_ENUM    = 5,
 };
 
 union constant switch(constant_kind type) {
-case CONST_BOOL:    bool           v_bool;
-case CONST_POS_INT: unsigned hyper v_pos_int;
-case CONST_NEG_INT: unsigned hyper v_neg_int;
-case CONST_FLOAT:   double         v_float;
-case CONST_STRING:  string         v_string<>;
-case CONST_ENUM:    unsigned int   v_enum;
+	case CONST_VOID:    void;
+	case CONST_BOOL:    bool           v_bool;
+	case CONST_POS_INT: unsigned hyper v_pos_int;
+	case CONST_NEG_INT: unsigned hyper v_neg_int;
+	case CONST_FLOAT:   double         v_float;
+	case CONST_STRING:  string         v_string<>;
+	case CONST_ENUM:    unsigned int   v_enum;
 };

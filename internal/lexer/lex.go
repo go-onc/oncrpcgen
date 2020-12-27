@@ -1,9 +1,10 @@
-package main
+package lexer
 
 import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"text/scanner"
 )
 
@@ -64,6 +65,13 @@ func init() {
 	}
 }
 
+func tokenIDName(r rune) string {
+	if s, ok := tokToString[r]; ok {
+		return s
+	}
+	return scanner.TokenString(r)
+}
+
 type Token struct {
 	ID       rune
 	Value    string
@@ -71,10 +79,7 @@ type Token struct {
 }
 
 func (t *Token) String() string {
-	if s, ok := tokToString[t.ID]; ok {
-		return s
-	}
-	return scanner.TokenString(t.ID)
+	return tokenIDName(t.ID)
 }
 
 func (t *Token) Error(str string) error {
@@ -85,8 +90,18 @@ func (t *Token) Errorf(fmts string, params ...interface{}) error {
 	return t.Error(fmt.Sprintf(fmts, params...))
 }
 
-func (t *Token) Unexpected(ctx string) error {
-	return t.Errorf("Unexpected %s while parsing %s", t, ctx)
+func (t *Token) Unexpected(ctx string, toks ...rune) error {
+	var trailer string
+	if len(toks) > 0 {
+		tokNames := make([]string, len(toks))
+		for i, tok := range toks {
+			tokNames[i] = tokenIDName(tok)
+		}
+
+		trailer = fmt.Sprintf(" (Expected one of %s)", strings.Join(tokNames, ", "))
+	}
+
+	return t.Errorf("Unexpected %s while parsing %s%s", t, ctx, trailer)
 }
 
 type Lexer struct {
@@ -150,7 +165,7 @@ func (l *Lexer) PeekExpect(ctx string, toks ...rune) (*Token, error) {
 		}
 	}
 
-	return nil, t.Unexpected(ctx)
+	return nil, t.Unexpected(ctx, toks...)
 }
 
 func (l *Lexer) Next() *Token {
@@ -179,7 +194,7 @@ func (l *Lexer) Expect(ctx string, toks ...rune) (*Token, error) {
 		}
 	}
 
-	return nil, t.Unexpected(ctx)
+	return nil, t.Unexpected(ctx, toks...)
 }
 
 func (l *Lexer) Unget(t *Token) {

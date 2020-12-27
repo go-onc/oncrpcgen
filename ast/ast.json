@@ -1,0 +1,1236 @@
+{
+  "magic": 9896735300343437834,
+  "attributes": {
+    "doc": {
+      "type": "CONST_STRING",
+      "v_string": "XDR Abstract Syntax Tree definition - a binary interchange format for XDR specifications"
+    },
+    "go_package": {
+      "type": "CONST_STRING",
+      "v_string": "ast"
+    }
+  },
+  "definitions": [
+    {
+      "name": "XDR_BIN_MAGIC",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Binary magic: the `magic` field of the `specification` should be set to this value"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_POS_INT",
+          "v_pos_int": 9896735300343437834
+        }
+      }
+    },
+    {
+      "name": "specification",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Root object of a specification"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_STRUCT",
+          "struct_spec": {
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_UNSIGNED_HYPER"
+                },
+                "name": "magic",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Magic number: set to XDR_BIN_MAGIC"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 2
+                },
+                "name": "attributes",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Spec attributes (set using pragma directives)"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 3
+                },
+                "name": "definitions",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "List of all definitions"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "attributes",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "A set of attributes"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_TYPEDEF",
+          "type_def": {
+            "type": {
+              "kind": "TYPE_REF",
+              "ref": 4
+            },
+            "name": "attributes",
+            "modifier": {
+              "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+            },
+            "attributes": {
+              "mode": {
+                "type": "CONST_STRING",
+                "v_string": "map"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "definition",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "A top-level definition"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_STRUCT",
+          "struct_spec": {
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_STRING"
+                },
+                "name": "name",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "The name of the definition"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 2
+                },
+                "name": "attributes",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "The attributes of the definition"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_UNION",
+                  "union_spec": {
+                    "discriminant": {
+                      "type": {
+                        "kind": "TYPE_REF",
+                        "ref": 6
+                      },
+                      "name": "kind",
+                      "modifier": {
+                        "kind": "DECLARATION_MODIFIER_NONE"
+                      },
+                      "attributes": {}
+                    },
+                    "members": [
+                      {
+                        "type": {
+                          "kind": "TYPE_REF",
+                          "ref": 9
+                        },
+                        "name": "type",
+                        "modifier": {
+                          "kind": "DECLARATION_MODIFIER_NONE"
+                        },
+                        "attributes": {
+                          "doc": {
+                            "type": "CONST_STRING",
+                            "v_string": "Body, for type definitions"
+                          }
+                        }
+                      },
+                      {
+                        "type": {
+                          "kind": "TYPE_REF",
+                          "ref": 5
+                        },
+                        "name": "constant",
+                        "modifier": {
+                          "kind": "DECLARATION_MODIFIER_NONE"
+                        },
+                        "attributes": {
+                          "doc": {
+                            "type": "CONST_STRING",
+                            "v_string": "Body, for constant definitions"
+                          }
+                        }
+                      }
+                    ],
+                    "options": {
+                      "0": 0,
+                      "1": 1
+                    }
+                  }
+                },
+                "name": "body",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "attribute",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "An attribute of an object"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_STRUCT",
+          "struct_spec": {
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_STRING"
+                },
+                "name": "name",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 5
+                },
+                "name": "value",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "constant",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_UNION",
+          "union_spec": {
+            "discriminant": {
+              "type": {
+                "kind": "TYPE_REF",
+                "ref": 36
+              },
+              "name": "type",
+              "modifier": {
+                "kind": "DECLARATION_MODIFIER_NONE"
+              },
+              "attributes": {}
+            },
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_VOID"
+                },
+                "name": "",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_BOOL"
+                },
+                "name": "v_bool",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_UNSIGNED_HYPER"
+                },
+                "name": "v_pos_int",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_UNSIGNED_HYPER"
+                },
+                "name": "v_neg_int",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_DOUBLE"
+                },
+                "name": "v_float",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_STRING"
+                },
+                "name": "v_string",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_UNSIGNED_INT"
+                },
+                "name": "v_enum",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              }
+            ],
+            "options": {
+              "0": 1,
+              "1": 2,
+              "2": 3,
+              "3": 4,
+              "4": 5,
+              "5": 6,
+              "6": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "definition_kind",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "The kind of a definition"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_ENUM",
+          "enum_spec": {
+            "base": 7,
+            "count": 2
+          }
+        }
+      }
+    },
+    {
+      "name": "DEFINITION_KIND_TYPE",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM"
+        }
+      }
+    },
+    {
+      "name": "DEFINITION_KIND_CONSTANT",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 1
+        }
+      }
+    },
+    {
+      "name": "type",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Definition of a type"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_UNION",
+          "union_spec": {
+            "discriminant": {
+              "type": {
+                "kind": "TYPE_REF",
+                "ref": 10
+              },
+              "name": "kind",
+              "modifier": {
+                "kind": "DECLARATION_MODIFIER_NONE"
+              },
+              "attributes": {}
+            },
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_VOID"
+                },
+                "name": "",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 26
+                },
+                "name": "enum_spec",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 27
+                },
+                "name": "struct_spec",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 28
+                },
+                "name": "union_spec",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_UNSIGNED_INT"
+                },
+                "name": "ref",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 29
+                },
+                "name": "type_def",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {}
+              }
+            ],
+            "options": {
+              "0": 0,
+              "1": 0,
+              "10": 1,
+              "11": 2,
+              "12": 3,
+              "13": 4,
+              "14": 5,
+              "2": 0,
+              "3": 0,
+              "4": 0,
+              "5": 0,
+              "6": 0,
+              "7": 0,
+              "8": 0,
+              "9": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "type_kind",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "The kind of the type"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_ENUM",
+          "enum_spec": {
+            "base": 11,
+            "count": 15
+          }
+        }
+      }
+    },
+    {
+      "name": "TYPE_VOID",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM"
+        }
+      }
+    },
+    {
+      "name": "TYPE_BOOL",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 1
+        }
+      }
+    },
+    {
+      "name": "TYPE_INT",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 2
+        }
+      }
+    },
+    {
+      "name": "TYPE_UNSIGNED_INT",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 3
+        }
+      }
+    },
+    {
+      "name": "TYPE_HYPER",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 4
+        }
+      }
+    },
+    {
+      "name": "TYPE_UNSIGNED_HYPER",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 5
+        }
+      }
+    },
+    {
+      "name": "TYPE_FLOAT",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 6
+        }
+      }
+    },
+    {
+      "name": "TYPE_DOUBLE",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 7
+        }
+      }
+    },
+    {
+      "name": "TYPE_STRING",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 8
+        }
+      }
+    },
+    {
+      "name": "TYPE_OPAQUE",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 9
+        }
+      }
+    },
+    {
+      "name": "TYPE_ENUM",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 10
+        }
+      }
+    },
+    {
+      "name": "TYPE_STRUCT",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 11
+        }
+      }
+    },
+    {
+      "name": "TYPE_UNION",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 12
+        }
+      }
+    },
+    {
+      "name": "TYPE_REF",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 13
+        }
+      }
+    },
+    {
+      "name": "TYPE_TYPEDEF",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 14
+        }
+      }
+    },
+    {
+      "name": "enum_spec",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Definition of an enum. Represented by referencing the assoicaed global constants"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_STRUCT",
+          "struct_spec": {
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_UNSIGNED_INT"
+                },
+                "name": "base",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "First constant that is a part of this enumeration"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_UNSIGNED_INT"
+                },
+                "name": "count",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Number of constants (which must consecutively follow base) that define components of this enumeration"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "struct_spec",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Definition of an enum"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_STRUCT",
+          "struct_spec": {
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 29
+                },
+                "name": "members",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Set of struct members"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "union_spec",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Definition of a union"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_STRUCT",
+          "struct_spec": {
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 29
+                },
+                "name": "discriminant",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Discriminant field"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 29
+                },
+                "name": "members",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Set of union member fields"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_STRUCT",
+                  "struct_spec": {
+                    "members": [
+                      {
+                        "type": {
+                          "kind": "TYPE_UNSIGNED_INT"
+                        },
+                        "name": "value",
+                        "modifier": {
+                          "kind": "DECLARATION_MODIFIER_NONE"
+                        },
+                        "attributes": {}
+                      },
+                      {
+                        "type": {
+                          "kind": "TYPE_UNSIGNED_INT"
+                        },
+                        "name": "member",
+                        "modifier": {
+                          "kind": "DECLARATION_MODIFIER_NONE"
+                        },
+                        "attributes": {}
+                      }
+                    ]
+                  }
+                },
+                "name": "options",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Mapping from values to union member. `member` is the index of the member in `members`"
+                  },
+                  "mode": {
+                    "type": "CONST_STRING",
+                    "v_string": "map"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_UNSIGNED_INT"
+                },
+                "name": "default_member",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_OPTIONAL"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "If a default member is present, defines it"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "declaration",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Field declaration"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_STRUCT",
+          "struct_spec": {
+            "members": [
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 9
+                },
+                "name": "type",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Type of the field"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_STRING"
+                },
+                "name": "name",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_UNBOUNDED"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Name of the field"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_UNION",
+                  "union_spec": {
+                    "discriminant": {
+                      "type": {
+                        "kind": "TYPE_REF",
+                        "ref": 30
+                      },
+                      "name": "kind",
+                      "modifier": {
+                        "kind": "DECLARATION_MODIFIER_NONE"
+                      },
+                      "attributes": {}
+                    },
+                    "members": [
+                      {
+                        "type": {
+                          "kind": "TYPE_VOID"
+                        },
+                        "name": "",
+                        "modifier": {
+                          "kind": "DECLARATION_MODIFIER_NONE"
+                        },
+                        "attributes": {}
+                      },
+                      {
+                        "type": {
+                          "kind": "TYPE_UNSIGNED_INT"
+                        },
+                        "name": "size",
+                        "modifier": {
+                          "kind": "DECLARATION_MODIFIER_NONE"
+                        },
+                        "attributes": {}
+                      }
+                    ],
+                    "options": {
+                      "0": 0,
+                      "1": 0,
+                      "2": 1,
+                      "3": 1,
+                      "5": 0
+                    }
+                  }
+                },
+                "name": "modifier",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Modifier of the type"
+                  }
+                }
+              },
+              {
+                "type": {
+                  "kind": "TYPE_REF",
+                  "ref": 2
+                },
+                "name": "attributes",
+                "modifier": {
+                  "kind": "DECLARATION_MODIFIER_NONE"
+                },
+                "attributes": {
+                  "doc": {
+                    "type": "CONST_STRING",
+                    "v_string": "Field attributes"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "declaration_modifier",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "How a declaration modifies its type"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_ENUM",
+          "enum_spec": {
+            "base": 31,
+            "count": 5
+          }
+        }
+      }
+    },
+    {
+      "name": "DECLARATION_MODIFIER_NONE",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM"
+        }
+      }
+    },
+    {
+      "name": "DECLARATION_MODIFIER_OPTIONAL",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 1
+        }
+      }
+    },
+    {
+      "name": "DECLARATION_MODIFIER_FIXED",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 2
+        }
+      }
+    },
+    {
+      "name": "DECLARATION_MODIFIER_FLEXIBLE",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 3
+        }
+      }
+    },
+    {
+      "name": "DECLARATION_MODIFIER_UNBOUNDED",
+      "attributes": {},
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 5
+        }
+      }
+    },
+    {
+      "name": "constant_kind",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Type of a constant. These are a subset of XDR types"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_TYPE",
+        "type": {
+          "kind": "TYPE_ENUM",
+          "enum_spec": {
+            "base": 37,
+            "count": 7
+          }
+        }
+      }
+    },
+    {
+      "name": "CONST_VOID",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Void (empty)"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 6
+        }
+      }
+    },
+    {
+      "name": "CONST_BOOL",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Boolean"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM"
+        }
+      }
+    },
+    {
+      "name": "CONST_POS_INT",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Positive integer (unsigned hyper)"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 1
+        }
+      }
+    },
+    {
+      "name": "CONST_NEG_INT",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Negative integer (negate as a signed hyper)"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 2
+        }
+      }
+    },
+    {
+      "name": "CONST_FLOAT",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Double precision floating point value"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 3
+        }
+      }
+    },
+    {
+      "name": "CONST_STRING",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "String constant"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 4
+        }
+      }
+    },
+    {
+      "name": "CONST_ENUM",
+      "attributes": {
+        "doc": {
+          "type": "CONST_STRING",
+          "v_string": "Enumeration value"
+        }
+      },
+      "body": {
+        "kind": "DEFINITION_KIND_CONSTANT",
+        "constant": {
+          "type": "CONST_ENUM",
+          "v_enum": 5
+        }
+      }
+    }
+  ]
+}

@@ -1,26 +1,33 @@
-package main
+package parser
 
 import (
+	"io"
 	"strconv"
 
-	"go.e43.eu/go-onc/oncrpcgen/ast"
+	"go.e43.eu/xdrgen/ast"
+	"go.e43.eu/xdrgen/internal/lexer"
 )
 
-func ParseSpecification(l *Lexer) (*ast.Specification, error) {
+func ParseSpecification(rdr io.Reader, filename string) (*ast.Specification, error) {
+	l := lexer.NewLexer(rdr, filename)
+	return parseSpecification(l)
+}
+
+func parseSpecification(l *lexer.Lexer) (*ast.Specification, error) {
 	s := new(ast.Specification)
 	s.Magic = ast.XDR_BIN_MAGIC
 
 	if l.Peek().ID == '#' {
 		l.Next()
-		a, err := ParseAttributes(s, l)
+		a, err := parseAttributes(s, l)
 		if err != nil {
 			return nil, err
 		}
 		s.Attributes = a
 	}
 
-	for t := l.Peek(); t.ID != TokEOF; t = l.Peek() {
-		d, err := ParseDefinition(s, l)
+	for t := l.Peek(); t.ID != lexer.TokEOF; t = l.Peek() {
+		d, err := parseDefinition(s, l)
 		if err != nil {
 			return nil, err
 		}
@@ -32,7 +39,7 @@ func ParseSpecification(l *Lexer) (*ast.Specification, error) {
 	return s, nil
 }
 
-func ParseAttributes(s *ast.Specification, l *Lexer) (map[string]*ast.Constant, error) {
+func parseAttributes(s *ast.Specification, l *lexer.Lexer) (ast.Attributes, error) {
 	if l.NextOneOf('[') == nil {
 		return nil, nil
 	}
@@ -47,7 +54,7 @@ func ParseAttributes(s *ast.Specification, l *Lexer) (map[string]*ast.Constant, 
 			}
 		}
 
-		ident, err := l.Expect("attributes", TokIdent)
+		ident, err := l.Expect("attributes", lexer.TokIdent)
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +70,7 @@ func ParseAttributes(s *ast.Specification, l *Lexer) (map[string]*ast.Constant, 
 			}
 			continue
 		case '(':
-			val, err := ParseValue(s, l)
+			val, err := parseValue(s, l)
 			if err != nil {
 				return nil, err
 			}
@@ -79,7 +86,7 @@ func ParseAttributes(s *ast.Specification, l *Lexer) (map[string]*ast.Constant, 
 			case ',':
 				continue
 			case ']':
-				return a, nil
+				return ast.Attributes(a), nil
 			default:
 				return nil, t.Unexpected("attributes")
 			}
@@ -89,24 +96,24 @@ func ParseAttributes(s *ast.Specification, l *Lexer) (map[string]*ast.Constant, 
 	}
 }
 
-func ParseDefinition(s *ast.Specification, l *Lexer) (d *ast.Definition, err error) {
-	a, err := ParseAttributes(s, l)
+func parseDefinition(s *ast.Specification, l *lexer.Lexer) (d *ast.Definition, err error) {
+	a, err := parseAttributes(s, l)
 	if err != nil {
 		return nil, err
 	}
 
 	t := l.Peek()
 	switch t.ID {
-	case TokTypedef:
-		d, err = ParseTypedef(s, l)
-	case TokEnum:
-		d, err = ParseEnum(s, l)
-	case TokStruct:
-		d, err = ParseStruct(s, l)
-	case TokUnion:
+	case lexer.TokTypedef:
+		d, err = parseTypedef(s, l)
+	case lexer.TokEnum:
+		d, err = parseEnum(s, l)
+	case lexer.TokStruct:
+		d, err = parseStruct(s, l)
+	case lexer.TokUnion:
 		d, err = ParseUnion(s, l)
-	case TokConst:
-		d, err = ParseConst(s, l)
+	case lexer.TokConst:
+		d, err = parseConst(s, l)
 	default:
 		err = t.Unexpected("definition")
 	}
@@ -118,13 +125,13 @@ func ParseDefinition(s *ast.Specification, l *Lexer) (d *ast.Definition, err err
 	return d, nil
 }
 
-func ParseValue(s *ast.Specification, l *Lexer) (*ast.Constant, error) {
+func parseValue(s *ast.Specification, l *lexer.Lexer) (*ast.Constant, error) {
 	t := l.Next()
 	switch t.ID {
-	case TokIdent:
+	case lexer.TokIdent:
 		return s.GetConstant(t.Value)
 
-	case TokIntConst:
+	case lexer.TokIntConst:
 		istr := t.Value
 		negative := false
 		if istr[0] == '-' {
@@ -149,7 +156,7 @@ func ParseValue(s *ast.Specification, l *Lexer) (*ast.Constant, error) {
 			}, nil
 		}
 
-	case TokFloatConst:
+	case lexer.TokFloatConst:
 		f, err := strconv.ParseFloat(t.Value, 64)
 		if err != nil {
 			return nil, t.Error(err.Error())
@@ -160,7 +167,7 @@ func ParseValue(s *ast.Specification, l *Lexer) (*ast.Constant, error) {
 			VFloat: f,
 		}, nil
 
-	case TokStringConst:
+	case lexer.TokStringConst:
 		str, err := strconv.Unquote(t.Value)
 		if err != nil {
 			return nil, t.Error(err.Error())
@@ -175,12 +182,12 @@ func ParseValue(s *ast.Specification, l *Lexer) (*ast.Constant, error) {
 	}
 }
 
-func ParseConst(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
-	if _, err := l.Expect("const", TokConst); err != nil {
+func parseConst(s *ast.Specification, l *lexer.Lexer) (*ast.Definition, error) {
+	if _, err := l.Expect("const", lexer.TokConst); err != nil {
 		return nil, err
 	}
 
-	ident, err := l.Expect("const", TokIdent)
+	ident, err := l.Expect("const", lexer.TokIdent)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +196,7 @@ func ParseConst(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
 		return nil, err
 	}
 
-	val, err := ParseValue(s, l)
+	val, err := parseValue(s, l)
 	if err != nil {
 		return nil, err
 	}
@@ -207,12 +214,12 @@ func ParseConst(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
 	}, nil
 }
 
-func ParseTypedef(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
-	if _, err := l.Expect("typedef", TokTypedef); err != nil {
+func parseTypedef(s *ast.Specification, l *lexer.Lexer) (*ast.Definition, error) {
+	if _, err := l.Expect("typedef", lexer.TokTypedef); err != nil {
 		return nil, err
 	}
 
-	decl, err := ParseDeclaration(s, l)
+	decl, err := parseDeclaration(s, l)
 	if err != nil {
 		return nil, err
 	}
@@ -233,69 +240,69 @@ func ParseTypedef(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
 	}, nil
 }
 
-func ParseDeclaration(s *ast.Specification, l *Lexer) (*ast.Declaration, error) {
+func parseDeclaration(s *ast.Specification, l *lexer.Lexer) (*ast.Declaration, error) {
 	var err error
 	d := &ast.Declaration{
 		Modifier: new(ast.Declaration_Modifier),
 	}
 
-	d.Attributes, err = ParseAttributes(s, l)
+	d.Attributes, err = parseAttributes(s, l)
 	if err != nil {
 		return nil, err
 	}
 
 	t := l.Next()
 	switch t.ID {
-	case TokUnsigned:
-		t, err := l.Expect("declaration", TokInt, TokHyper)
+	case lexer.TokUnsigned:
+		t, err := l.Expect("declaration", lexer.TokInt, lexer.TokHyper)
 		if err != nil {
 			return nil, err
 		}
 
 		switch t.ID {
-		case TokInt:
+		case lexer.TokInt:
 			d.Type = ast.UnsignedInt()
-		case TokHyper:
+		case lexer.TokHyper:
 			d.Type = ast.UnsignedHyper()
 		}
-	case TokInt:
+	case lexer.TokInt:
 		d.Type = ast.Int()
-	case TokHyper:
+	case lexer.TokHyper:
 		d.Type = ast.Hyper()
-	case TokFloat:
+	case lexer.TokFloat:
 		d.Type = ast.Float()
-	case TokDouble:
+	case lexer.TokDouble:
 		d.Type = ast.Double()
-	case TokBool:
+	case lexer.TokBool:
 		d.Type = ast.Bool()
-	case TokString:
+	case lexer.TokString:
 		d.Type = ast.String()
-	case TokOpaque:
+	case lexer.TokOpaque:
 		d.Type = ast.Opaque()
-	case TokEnum:
+	case lexer.TokEnum:
 		l.Unget(t)
-		d.Type, err = ParseEnumTypeSpec(s, l)
+		d.Type, err = parseEnumTypeSpec(s, l)
 		if err != nil {
 			return nil, err
 		}
-	case TokStruct:
+	case lexer.TokStruct:
 		l.Unget(t)
-		d.Type, err = ParseStructTypeSpec(s, l)
+		d.Type, err = parseStructTypeSpec(s, l)
 		if err != nil {
 			return nil, err
 		}
-	case TokUnion:
+	case lexer.TokUnion:
 		l.Unget(t)
 		d.Type, err = ParseUnionTypeSpec(s, l)
 		if err != nil {
 			return nil, err
 		}
-	case TokIdent:
+	case lexer.TokIdent:
 		d.Type, err = s.TypeRef(t.Value)
 		if err != nil {
 			return nil, err
 		}
-	case TokVoid:
+	case lexer.TokVoid:
 		d.Type = ast.Void()
 		return d, nil
 	default:
@@ -306,13 +313,13 @@ func ParseDeclaration(s *ast.Specification, l *Lexer) (*ast.Declaration, error) 
 		d.Modifier.Kind = ast.DECLARATION_MODIFIER_OPTIONAL
 	}
 
-	t, err = l.Expect("declaration", TokIdent)
+	t, err = l.Expect("declaration", lexer.TokIdent)
 	if err != nil {
 		return nil, err
 	}
 	d.Name = t.Value
 
-	var t2 *Token
+	var t2 *lexer.Token
 	if d.Modifier.Kind != ast.DECLARATION_MODIFIER_OPTIONAL {
 		t2 = l.NextOneOf('<', '[')
 	}
@@ -322,7 +329,7 @@ func ParseDeclaration(s *ast.Specification, l *Lexer) (*ast.Declaration, error) 
 		if l.Peek().ID == '>' {
 			d.Modifier.Kind = ast.DECLARATION_MODIFIER_UNBOUNDED
 		} else {
-			val, err := ParseValue(s, l)
+			val, err := parseValue(s, l)
 			if err != nil {
 				return nil, err
 			}
@@ -339,7 +346,7 @@ func ParseDeclaration(s *ast.Specification, l *Lexer) (*ast.Declaration, error) 
 			return nil, err
 		}
 	case t2 != nil && t2.ID == '[' && d.Type.Kind != ast.TYPE_STRING:
-		val, err := ParseValue(s, l)
+		val, err := parseValue(s, l)
 		if err != nil {
 			return nil, err
 		}
@@ -361,22 +368,30 @@ func ParseDeclaration(s *ast.Specification, l *Lexer) (*ast.Declaration, error) 
 	return d, nil
 }
 
-func ParseEnumTypeSpec(s *ast.Specification, l *Lexer) (*ast.Type, error) {
-	l.Expect("enum", TokEnum)
-	return ParseEnumBody(s, l)
+func parseEnumTypeSpec(s *ast.Specification, l *lexer.Lexer) (*ast.Type, error) {
+	l.Expect("enum", lexer.TokEnum)
+	return parseEnumBody(s, l)
 }
 
-func ParseEnum(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
-	if _, err := l.Expect("enum", TokEnum); err != nil {
+func parseEnum(s *ast.Specification, l *lexer.Lexer) (*ast.Definition, error) {
+	if _, err := l.Expect("enum", lexer.TokEnum); err != nil {
 		return nil, err
 	}
 
-	ident, err := l.Expect("enum", TokIdent)
+	ident, err := l.Expect("enum", lexer.TokIdent)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := ParseEnumBody(s, l)
+	// Pre-build a definition slot for this type
+	// (This ensures the enum precedes its' associated constants
+	// in the output file)
+	_, err = s.TypeRef(ident.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := parseEnumBody(s, l)
 	if err != nil {
 		return nil, err
 	}
@@ -394,30 +409,41 @@ func ParseEnum(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
 	}, nil
 }
 
-func ParseEnumBody(s *ast.Specification, l *Lexer) (*ast.Type, error) {
+func parseEnumBody(s *ast.Specification, l *lexer.Lexer) (*ast.Type, error) {
 	es := new(ast.EnumSpec)
 
 	if _, err := l.Expect("enum", '{'); err != nil {
 		return nil, err
 	}
 
+	es.Base = uint32(len(s.Definitions))
+
 body:
 	for {
-		t, err := l.Expect("enum body", TokIdent, ',', '}')
+		t, err := l.Expect("enum body", lexer.TokIdent, '[', ',', '}')
 		if err != nil {
 			return nil, err
 		}
 
-		switch t.ID {
-		case TokIdent:
-			if es.HasOption(t.Value) {
-				t.Errorf("Name '%s' already defined", t.Value)
+		var attributes ast.Attributes
+		if t.ID == '[' {
+			l.Unget(t)
+			attributes, err = parseAttributes(s, l)
+			if err != nil {
+				return nil, err
 			}
 
+			t, err = l.Expect("enum body", lexer.TokIdent)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if t.ID == lexer.TokIdent {
 			if _, err := l.Expect("enum body", '='); err != nil {
 				return nil, err
 			}
-			v, err := ParseValue(s, l)
+			v, err := parseValue(s, l)
 			if err != nil {
 				return nil, err
 			}
@@ -425,11 +451,6 @@ body:
 			if err != nil {
 				return nil, err
 			}
-
-			es.Options = append(es.Options, &ast.EnumSpec_Options{
-				Name:  t.Value,
-				Value: vu32,
-			})
 
 			s.PutDefinition(&ast.Definition{
 				Name: t.Value,
@@ -440,6 +461,7 @@ body:
 						VEnum: vu32,
 					},
 				},
+				Attributes: attributes,
 			})
 
 			t, err = l.Expect("enum body", ',', '}')
@@ -460,23 +482,32 @@ body:
 		}
 	}
 
+	es.Count = uint32(len(s.Definitions)) - es.Base
+
 	return &ast.Type{
 		Kind:     ast.TYPE_ENUM,
 		EnumSpec: es,
 	}, nil
 }
 
-func ParseStruct(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
-	if _, err := l.Expect("struct", TokStruct); err != nil {
+func parseStruct(s *ast.Specification, l *lexer.Lexer) (*ast.Definition, error) {
+	if _, err := l.Expect("struct", lexer.TokStruct); err != nil {
 		return nil, err
 	}
 
-	ident, err := l.Expect("struct", TokIdent)
+	ident, err := l.Expect("struct", lexer.TokIdent)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := ParseStructBody(s, l)
+	// Pre-build a definition slot for this type
+	// (This helps the order of our output more closely reflect out input)
+	_, err = s.TypeRef(ident.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := parseStructBody(s, l)
 	if err != nil {
 		return nil, err
 	}
@@ -494,15 +525,15 @@ func ParseStruct(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
 	}, nil
 }
 
-func ParseStructTypeSpec(s *ast.Specification, l *Lexer) (*ast.Type, error) {
-	if _, err := l.Expect("struct", TokStruct); err != nil {
+func parseStructTypeSpec(s *ast.Specification, l *lexer.Lexer) (*ast.Type, error) {
+	if _, err := l.Expect("struct", lexer.TokStruct); err != nil {
 		return nil, err
 	}
 
-	return ParseStructBody(s, l)
+	return parseStructBody(s, l)
 }
 
-func ParseStructBody(s *ast.Specification, l *Lexer) (*ast.Type, error) {
+func parseStructBody(s *ast.Specification, l *lexer.Lexer) (*ast.Type, error) {
 	if _, err := l.Expect("struct", '{'); err != nil {
 		return nil, err
 	}
@@ -515,7 +546,7 @@ body:
 		}
 
 		t := l.Peek()
-		decl, err := ParseDeclaration(s, l)
+		decl, err := parseDeclaration(s, l)
 		if err != nil {
 			return nil, err
 		}
@@ -537,12 +568,19 @@ body:
 	}, nil
 }
 
-func ParseUnion(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
-	if _, err := l.Expect("union", TokUnion); err != nil {
+func ParseUnion(s *ast.Specification, l *lexer.Lexer) (*ast.Definition, error) {
+	if _, err := l.Expect("union", lexer.TokUnion); err != nil {
 		return nil, err
 	}
 
-	ident, err := l.Expect("union", TokIdent)
+	ident, err := l.Expect("union", lexer.TokIdent)
+	if err != nil {
+		return nil, err
+	}
+
+	// Pre-build a definition slot for this type
+	// (This helps the order of our output more closely reflect out input)
+	_, err = s.TypeRef(ident.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -564,25 +602,25 @@ func ParseUnion(s *ast.Specification, l *Lexer) (*ast.Definition, error) {
 	}, nil
 }
 
-func ParseUnionTypeSpec(s *ast.Specification, l *Lexer) (*ast.Type, error) {
-	l.Expect("union", TokUnion)
+func ParseUnionTypeSpec(s *ast.Specification, l *lexer.Lexer) (*ast.Type, error) {
+	l.Expect("union", lexer.TokUnion)
 	return ParseUnionBody(s, l)
 }
 
-func ParseUnionBody(s *ast.Specification, l *Lexer) (*ast.Type, error) {
+func ParseUnionBody(s *ast.Specification, l *lexer.Lexer) (*ast.Type, error) {
 	var err error
 	us := &ast.UnionSpec{
 		Options: make(map[uint32]uint32),
 	}
 
-	if _, err := l.Expect("union", TokSwitch); err != nil {
+	if _, err := l.Expect("union", lexer.TokSwitch); err != nil {
 		return nil, err
 	}
 	if _, err := l.Expect("union", '('); err != nil {
 		return nil, err
 	}
 
-	us.Discriminant, err = ParseDeclaration(s, l)
+	us.Discriminant, err = parseDeclaration(s, l)
 	if err != nil {
 		return nil, err
 	}
@@ -597,15 +635,15 @@ func ParseUnionBody(s *ast.Specification, l *Lexer) (*ast.Type, error) {
 body:
 	for {
 		switch l.Peek().ID {
-		case TokDefault, '}':
+		case lexer.TokDefault, '}':
 			break body
 		}
 
-		caseTok, err := l.Expect("union", TokCase)
+		caseTok, err := l.Expect("union", lexer.TokCase)
 		if err != nil {
 			return nil, err
 		}
-		discriminantVal, err := ParseValue(s, l)
+		discriminantVal, err := parseValue(s, l)
 		if err != nil {
 			return nil, err
 		}
@@ -616,7 +654,7 @@ body:
 		if _, err := l.Expect("union", ':'); err != nil {
 			return nil, err
 		}
-		declaration, err := ParseDeclaration(s, l)
+		declaration, err := parseDeclaration(s, l)
 		if err != nil {
 			return nil, err
 		}
@@ -643,11 +681,11 @@ body:
 		us.Options[discriminant] = pos
 	}
 
-	if caseTok := l.NextOneOf(TokDefault); caseTok != nil {
+	if caseTok := l.NextOneOf(lexer.TokDefault); caseTok != nil {
 		if _, err := l.Expect("union", ':'); err != nil {
 			return nil, err
 		}
-		declaration, err := ParseDeclaration(s, l)
+		declaration, err := parseDeclaration(s, l)
 		if err != nil {
 			return nil, err
 		}

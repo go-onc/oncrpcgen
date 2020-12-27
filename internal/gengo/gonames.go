@@ -29,7 +29,8 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-package main
+
+package gengo
 
 // CamelCase returns the CamelCased name.
 // If there is an interior underscore followed by a lower case letter,
@@ -41,7 +42,7 @@ package main
 // In short, _my_field_name_2 becomes XMyFieldName_2.
 func CamelCase(s string) string {
 	if s == "" {
-		return ""
+		return "_"
 	}
 	t := make([]byte, 0, 32)
 	i := 0

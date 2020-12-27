@@ -1,20 +1,30 @@
 package ast
 
 import (
-	"errors"
 	"fmt"
 )
 
-//go:generate go run ../. -Gxb,go ast.x
+//go:generate xdrgen -Gxb,go ast.x
 
-var (
-	ErrDefinitionNotFound      = errors.New("Definition not found")
-	ErrDefinitionNotType       = errors.New("Definition not a type")
-	ErrDefinitionNotConstant   = errors.New("Definition not a constant")
-	ErrDefinitionNotConsistent = errors.New("Definition not consistent with preceding definition")
-	ErrRedefinitionOfType      = errors.New("Attempt to redefine type")
-	ErrRedefinitionOfConstant  = errors.New("Attempt to redefine constant")
-	ErrTypeNotRef              = errors.New("Type is not of TYPE_REF")
+type xerror string
+
+func (err xerror) Error() string {
+	return string(err)
+}
+
+const (
+	ErrDefinitionNotFound      = xerror("Definition not found")
+	ErrDefinitionNotType       = xerror("Definition not a type")
+	ErrDefinitionNotConstant   = xerror("Definition not a constant")
+	ErrDefinitionNotConsistent = xerror("Definition not consistent with preceding definition")
+	ErrRedefinitionOfType      = xerror("Attempt to redefine type")
+	ErrRedefinitionOfConstant  = xerror("Attempt to redefine constant")
+	ErrTypeNotRef              = xerror("Type is not of TYPE_REF")
+)
+
+const (
+	// XDR_BIN_MAGIC_BYTES is XDR_BIN_MAGIC expressed as a byte string
+	XDR_BIN_MAGIC_BYTES = "\x89\x58\x44\x52\x0D\x0A\x1A\x0A"
 )
 
 // Void returns a type of TYPE_VOID
@@ -73,7 +83,7 @@ func (s *Specification) PutDefinition(d *Definition) (uint32, error) {
 		xd    *Definition
 	)
 	for i, x := range s.Definitions {
-		if xd.Name == d.Name {
+		if x.Name == d.Name {
 			xdIdx = uint32(i)
 			xd = x
 			break
@@ -85,7 +95,7 @@ func (s *Specification) PutDefinition(d *Definition) (uint32, error) {
 			return 0, ErrDefinitionNotConsistent
 		} else if xd.Body.Kind == DEFINITION_KIND_TYPE && xd.Body.Type != nil {
 			return 0, ErrRedefinitionOfType
-		} else if xd.Body.Kind == DEFINITION_KIND_CONSTANT && xd.Body.Constant != nil {
+		} else if xd.Body.Kind == DEFINITION_KIND_CONSTANT {
 			return 0, ErrRedefinitionOfConstant
 		}
 		s.Definitions[xdIdx] = d
@@ -157,23 +167,80 @@ func (ss *StructSpec) HasMember(name string) bool {
 }
 
 // HasOption returns if a named option exists
-func (es *EnumSpec) HasOption(name string) bool {
-	for _, o := range es.Options {
-		if o.Name == name {
+func (es *EnumSpec) HasOption(s *Specification, name string) bool {
+	limit := es.Base + es.Count
+	for i := es.Base; i < limit; i++ {
+		xd := s.Definitions[i]
+		switch {
+		case xd.Body.Kind != DEFINITION_KIND_CONSTANT:
+			continue
+		case xd.Body.Constant.Type != CONST_ENUM:
+			continue
+		case xd.Name == name:
 			return true
 		}
 	}
 	return false
 }
 
+// HasOption returns if a named option exists
+func (es *EnumSpec) GetValue(s *Specification, name string) (uint32, bool) {
+	limit := es.Base + es.Count
+	for i := es.Base; i < limit; i++ {
+		xd := s.Definitions[i]
+		switch {
+		case xd.Body.Kind != DEFINITION_KIND_CONSTANT:
+			continue
+		case xd.Body.Constant.Type != CONST_ENUM:
+			continue
+		case xd.Name == name:
+			return xd.Body.Constant.VEnum, true
+		}
+	}
+	return ^uint32(0), false
+}
+
 // GetName returns the canonical (first) name for the specified numeric value
-func (es *EnumSpec) GetName(val uint32) string {
-	for _, o := range es.Options {
-		if o.Value == val {
-			return o.Name
+func (es *EnumSpec) GetName(s *Specification, val uint32) string {
+	limit := es.Base + es.Count
+	for i := es.Base; i < limit; i++ {
+		xd := s.Definitions[i]
+		switch {
+		case xd.Body.Kind != DEFINITION_KIND_CONSTANT:
+			continue
+		case xd.Body.Constant.Type != CONST_ENUM:
+			continue
+		case xd.Body.Constant.VEnum == val:
+			return xd.Name
 		}
 	}
 	return ""
+}
+
+// EnumOption is a specifc option within an enum
+type EnumOption struct {
+	Name  string
+	Value uint32
+}
+
+// Returns a list of options
+func (es *EnumSpec) GetOptions(s *Specification) []EnumOption {
+	opts := make([]EnumOption, es.Count)
+
+	for i := uint32(0); i < es.Count; i++ {
+		xd := s.Definitions[es.Base+i]
+		switch {
+		case xd.Body.Kind != DEFINITION_KIND_CONSTANT,
+			xd.Body.Constant.Type != CONST_ENUM:
+			opts[i].Name = fmt.Sprintf("<Invalid enum %d>", es.Base+i)
+			opts[i].Value = ^uint32(0)
+		default:
+			opts[i].Name = xd.Name
+			opts[i].Value = xd.Body.Constant.VEnum
+		}
+	}
+
+	return opts
 }
 
 // HasOption returns if the numeric value specified is defined
